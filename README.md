@@ -1,4 +1,4 @@
-# 
+# DriveShare
 
  is a secure, internal file storage and sharing platform built with Django. It allows users to upload, organize, preview, stream, and share files while maintaining strict permission control. The system is designed to run on a single physical drive using logical isolation rather than disk partitioning.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## What  Does
+## What  Does it do
 
 * Stores documents and media securely in one place
 * Ensures users only see files they own or are allowed to access
