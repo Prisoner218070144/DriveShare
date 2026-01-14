@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1>Audit Logs</h1>
+            <p class="text-muted">System activity and access records</p>
+        </div>
+        <div>
+            <form method="get" class="flex gap-2">
+                <select name="action" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Actions</option>
+                    {% for action_code, action_name in action_types %}
+                    <option value="{{ action_code }}" {% if selected_action == action_code %}selected{% endif %}>
+                        {{ action_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <input type="text" 
+                       name="user" 
+                       value="{{ selected_user }}" 
+                       placeholder="Filter by user..."
+                       class="form-control">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>File</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in page_obj %}
+                <tr>
+                    <td>{{ log.created_at|date:"M d, H:i" }}</td>
+                    <td>{{ log.user.email|default:"System" }}</td>
+                    <td>
+                        <span class="log-action log-action-{{ log.action }}">
+                            {{ log.get_action_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if log.file %}
+                        <a href="{% url 'preview' log.file.id %}" class="text-blue-600 hover:underline">
+                            {{ log.file.original_name|truncatechars:30 }}
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.details %}
+                        <div class="text-sm text-muted">
+                            {{ log.details|truncatechars:50 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.ip_address|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-muted">
+                        No audit logs found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-between items-center mt-4">
+        <div class="text-muted">
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} logs
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}" 
+               class="btn btn-outline">
+                Previous
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="btn btn-primary">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}" 
+                   class="btn btn-outline">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}" 
+               class="btn btn-outline">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

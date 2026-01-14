@@ -1,0 +1,35 @@
+.bg-gray-50 {
+    background-color: #F9FAFB;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.hover\:underline:hover {
+    text-decoration: underline;
+}
+
+.text-blue-600 {
+    color: #2563EB;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-5xl {
+    font-size: 3rem;
+}

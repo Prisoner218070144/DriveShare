@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h1 class="mb-6">Admin Dashboard</h1>
+
+    <div class="system-stats">
+        <div class="system-stat-card">
+            <div class="system-stat-value">{{ total_files }}</div>
+            <div class="system-stat-label">Total Files</div>
+        </div>
+        <div class="system-stat-card">
+            <div class="system-stat-value">{{ total_size|filesizeformat }}</div>
+            <div class="system-stat-label">Total Storage</div>
+        </div>
+        <div class="system-stat-card">
+            <div class="system-stat-value">{{ total_users }}</div>
+            <div class="system-stat-label">Users</div>
+        </div>
+        <div class="system-stat-card">
+            <div class="system-stat-value">{{ active_sessions.count }}</div>
+            <div class="system-stat-label">Active Streams</div>
+        </div>
+    </div>
+
+    <div class="flex gap-4 mb-8">
+        <a href="{% url 'admin_logs' %}" class="btn btn-primary">
+            View All Logs
+        </a>
+        <a href="{% url 'admin_drive_access' %}" class="btn btn-success">
+            Drive Explorer
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <h2 class="mb-4">Active Streaming Sessions</h2>
+        {% if active_sessions %}
+        <div class="session-list">
+            {% for session in active_sessions %}
+            <div class="session-item">
+                <div class="session-info">
+                    <h4>{{ session.user.email }}</h4>
+                    <p class="session-duration">
+                        Streaming: {{ session.file.original_name|truncatechars:30 }}
+                    </p>
+                    <div class="text-sm text-muted">
+                        Started {{ session.start_time|timesince }} ago
+                    </div>
+                </div>
+                <div class="session-bytes">
+                    {{ session.bytes_streamed|filesizeformat }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No active streaming sessions</p>
+        {% endif %}
+    </div>
+
+    <div class="mb-8">
+        <h2 class="mb-4">Storage Usage by User</h2>
+        <div class="table-container">
+            <table class="user-storage-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Files</th>
+                        <th>Storage Used</th>
+                        <th>Last Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_stat in storage_by_user %}
+                    <tr>
+                        <td>{{ user_stat.email }}</td>
+                        <td>{{ user_stat.file_count }}</td>
+                        <td>
+                            {{ user_stat.total_size|filesizeformat|default:"0 B" }}
+                            {% if user_stat.total_size %}
+                            <div class="storage-bar">
+                                <div class="storage-fill" style="width: {% widthratio user_stat.total_size max_storage 100 %}%"></div>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with user_stat.audit_logs.first as last_log %}
+                                {% if last_log %}
+                                    {{ last_log.created_at|timesince }} ago
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <h2 class="mb-4">Recent Activity</h2>
+        <div class="space-y-3">
+            {% for log in recent_logs|slice:":10" %}
+            <div class="log-entry">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="log-action log-action-{{ log.action }}">
+                            {{ log.get_action_display }}
+                        </span>
+                        <span class="font-medium">{{ log.user.email|default:"System" }}</span>
+                        {% if log.file %}
+                        <span class="text-muted">{{ log.file.original_name|truncatechars:30 }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="log-time">
+                        {{ log.created_at|timesince }} ago
+                    </div>
+                </div>
+                {% if log.details %}
+                <div class="log-details">
+                    {{ log.details|safe }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

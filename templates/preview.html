@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Preview: {{ file.original_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/preview.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="file-actions flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-xl font-semibold">{{ file.original_name }}</h1>
+            <p class="text-gray-600">
+                {{ file.size|filesizeformat }} • {{ file.mime_type }} • Uploaded {{ file.created_at|timesince }} ago
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'download' file.id %}" class="btn btn-primary">
+                Download
+            </a>
+            {% if file.owner == user or user.is_superuser %}
+            <button class="btn btn-outline share-file" data-file-id="{{ file.id }}">
+                Share
+            </button>
+            {% endif %}
+            <a href="{% url 'files' %}" class="btn btn-outline">
+                Back to Files
+            </a>
+        </div>
+    </div>
+
+    <div class="media-container">
+        {% if file.file_type == 'image' %}
+        <div class="text-center p-8">
+            <img src="{% url 'stream' file.id %}" 
+                 alt="{{ file.original_name }}"
+                 class="max-w-full max-h-96 mx-auto rounded-lg shadow-lg">
+        </div>
+        
+        {% elif file.file_type == 'video' %}
+        <div class="p-4">
+            <video controls class="w-full rounded-lg" 
+                   data-video-id="{{ file.id }}"
+                   poster="{% if file.preview_available %}{% url 'stream' file.id %}?thumbnail=true{% endif %}">
+                <source src="{% url 'stream' file.id %}" type="{{ file.mime_type }}">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        
+        {% elif file.file_type == 'audio' %}
+        <div class="p-8 text-center">
+            <div class="text-6xl mb-4">🎵</div>
+            <audio controls class="w-full">
+                <source src="{% url 'stream' file.id %}" type="{{ file.mime_type }}">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+        
+        {% elif file.file_type == 'document' and file.mime_type == 'application/pdf' %}
+        <div class="h-96">
+            <iframe src="{% url 'stream' file.id %}#view=FitH" 
+                    class="w-full h-full border-0"
+                    title="{{ file.original_name }}">
+            </iframe>
+        </div>
+        
+        {% else %}
+        <div class="text-center p-12">
+            <div class="text-6xl mb-4">📄</div>
+            <h3 class="text-xl font-semibold mb-2">{{ file.original_name }}</h3>
+            <p class="text-gray-600 mb-4">
+                This file type cannot be previewed in the browser.
+            </p>
+            <a href="{% url 'download' file.id %}" class="btn btn-primary">
+                Download File
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-semibold mb-4">File Information</h3>
+            <dl class="space-y-3">
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">Original Name:</dt>
+                    <dd class="font-medium">{{ file.original_name }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">File Type:</dt>
+                    <dd class="font-medium">{{ file.get_file_type_display }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">MIME Type:</dt>
+                    <dd class="font-medium">{{ file.mime_type }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">Size:</dt>
+                    <dd class="font-medium">{{ file.size|filesizeformat }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">Uploaded:</dt>
+                    <dd class="font-medium">{{ file.created_at|date:"F j, Y, g:i a" }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-600">Owner:</dt>
+                    <dd class="font-medium">{{ file.owner.email }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="font-semibold mb-4">Permissions</h3>
+            {% if file.owner == user %}
+            <p class="mb-4">You are the owner of this file.</p>
+            {% endif %}
+            
+            <div class="space-y-3">
+                {% for perm in file.permissions.all %}
+                <div class="flex items-center justify-between p-3 bg-white rounded border">
+                    <div>
+                        <div class="font-medium">{{ perm.user.email }}</div>
+                        <div class="text-sm text-gray-600">
+                            Granted {{ perm.granted_at|timesince }} ago
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {{ perm.get_permission_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-gray-600">No additional permissions granted.</p>
+                {% endfor %}
+            </div>
+            
+            {% if file.owner == user or user.is_superuser %}
+            <button class="btn btn-primary w-full mt-4 share-file" data-file-id="{{ file.id }}">
+                Share with Others
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/share.js' %}"></script>
+{% endblock %}

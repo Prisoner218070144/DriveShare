@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharePoint Storage System - {% block title %}Dashboard{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="{% url 'dashboard' %}" class="logo">ShareStorage</a>
+                <div class="nav-links">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'files' %}" class="nav-link {% if request.path == '/files/' %}active{% endif %}">
+                            Files
+                        </a>
+                        <a href="{% url 'upload' %}" class="nav-link {% if request.path == '/upload/' %}active{% endif %}">
+                            Upload
+                        </a>
+                        <a href="{% url 'profile' %}" class="nav-link {% if request.path == '/profile/' %}active{% endif %}">
+                            Profile
+                        </a>
+                        {% if user.is_superuser %}
+                        <div class="nav-dropdown">
+                            <a href="#" class="nav-link {% if 'admin' in request.path %}active{% endif %}">
+                                Admin
+                            </a>
+                            <div class="dropdown-menu">
+                                <a href="{% url 'admin_dashboard' %}" class="dropdown-item">Dashboard</a>
+                                <a href="{% url 'admin_logs' %}" class="dropdown-item">Logs</a>
+                                <a href="{% url 'admin_drive_access' %}" class="dropdown-item">Drive Access</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="user-menu">
+                    {% if user.is_authenticated %}
+                        <span class="text-muted">{{ user.email }}</span>
+                        <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="preview-container" class="preview-container">
+        <div class="preview-header">
+            <h3>File Preview</h3>
+            <button class="close-preview btn btn-outline">&times;</button>
+        </div>
+        <div class="preview-content"></div>
+    </div>
+
+    <div id="modal-container"></div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

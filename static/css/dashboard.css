@@ -1,0 +1,45 @@
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.badge-document {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+.badge-image {
+    background: #F3E5F5;
+    color: #7B1FA2;
+}
+
+.badge-video {
+    background: #FFF3E0;
+    color: #F57C00;
+}
+
+.badge-audio {
+    background: #E8F5E9;
+    color: #388E3C;
+}
+
+.badge-archive, .badge-other {
+    background: #ECEFF4;
+    color: #4C566A;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.text-5xl {
+    font-size: 3rem;
+}

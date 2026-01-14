@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <aside class="sidebar">
+        <h3 class="mb-3">Storage Overview</h3>
+        <div class="stat-card mb-3">
+            <div class="stat-value">{{ user_file_count }}</div>
+            <div class="stat-label">Files</div>
+        </div>
+        <div class="stat-card">
+            {% load app_filters %}
+            <div class="stat-value">{{ user_storage_used|filesizeformat }}</div>
+            <div class="stat-label">Used</div>
+        </div>
+        
+        <h3 class="mt-4 mb-3">Quick Actions</h3>
+        <a href="{% url 'upload' %}" class="btn btn-primary w-full mb-2">
+            Upload File
+        </a>
+        <a href="{% url 'files' %}" class="btn btn-outline w-full">
+            Browse Files
+        </a>
+    </aside>
+
+    <div class="content">
+        <h1 class="mb-4">Welcome, {{ user.first_name|default:user.email }}</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ file_count }}</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ total_size|filesizeformat }}</div>
+                <div class="stat-label">Total Storage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ files_by_type|length }}</div>
+                <div class="stat-label">File Types</div>
+            </div>
+        </div>
+
+        <h2 class="mt-4 mb-3">Recent Files</h2>
+        {% if files %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>
+                            <strong>{{ file.original_name }}</strong>
+                            {% if file.owner == user %}
+                            <span class="text-muted">(Owner)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ file.file_type }}">
+                                {{ file.get_file_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ file.size|filesizeformat }}</td>
+                        <td>{{ file.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-outline preview-file" 
+                                        data-file-id="{{ file.id }}"
+                                        data-file-type="{{ file.file_type }}">
+                                    Preview
+                                </button>
+                                <a href="{% url 'download' file.id %}" class="btn btn-outline">
+                                    Download
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <div class="text-5xl mb-4">📁</div>
+            <h3 class="mb-2">No files yet</h3>
+            <p class="text-muted mb-4">Upload your first file to get started</p>
+            <a href="{% url 'upload' %}" class="btn btn-primary">
+                Upload File
+            </a>
+        </div>
+        {% endif %}
+
+        {% if files_by_type %}
+        <h2 class="mt-4 mb-3">Files by Type</h2>
+        <div class="files-grid">
+            {% for type_data in files_by_type %}
+            <div class="file-card">
+                <div class="file-icon">
+                    {% if type_data.file_type == 'image' %}🖼️
+                    {% elif type_data.file_type == 'video' %}🎬
+                    {% elif type_data.file_type == 'audio' %}🎵
+                    {% elif type_data.file_type == 'document' %}📄
+                    {% else %}📁{% endif %}
+                </div>
+                <div class="file-name">{{ type_data.get_file_type_display }}</div>
+                <div class="file-meta">{{ type_data.count }} files</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/preview.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Files{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/files.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="flex justify-between items-center mb-4">
+        <h1>Files</h1>
+        <a href="{% url 'upload' %}" class="btn btn-primary">Upload New</a>
+    </div>
+
+    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+        <form method="get" class="flex gap-4">
+            <div class="flex-1">
+                <input type="text" 
+                       name="q" 
+                       value="{{ search_query }}" 
+                       placeholder="Search files..."
+                       class="form-control">
+            </div>
+            <div>
+                <select name="type" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    {% for type_code, type_name in file_types %}
+                    <option value="{{ type_code }}" 
+                            {% if selected_type == type_code %}selected{% endif %}>
+                        {{ type_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    {% if page_obj %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Owner</th>
+                    <th>Uploaded</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in page_obj %}
+                <tr>
+                    <td>
+                        <strong>{{ file.original_name }}</strong>
+                        {% if file.owner == user %}
+                        <span class="text-muted text-sm">(You)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ file.file_type }}">
+                            {{ file.get_file_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ file.size|filesizeformat }}</td>
+                    <td>{{ file.owner.email }}</td>
+                    <td>{{ file.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button class="btn btn-outline preview-file" 
+                                    data-file-id="{{ file.id }}"
+                                    data-file-type="{{ file.file_type }}">
+                                Preview
+                            </button>
+                            <a href="{% url 'download' file.id %}" class="btn btn-outline">
+                                Download
+                            </a>
+                            {% if file.owner == user or user.is_superuser %}
+                            <button class="btn btn-outline share-file" 
+                                    data-file-id="{{ file.id }}">
+                                Share
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-between items-center mt-4">
+        <div class="text-muted">
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} files
+        </div>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="btn btn-outline">
+                Previous
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="btn btn-primary">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                   class="btn btn-outline">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="btn btn-outline">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-8">
+        <div class="text-5xl mb-4">🔍</div>
+        <h3 class="mb-2">No files found</h3>
+        <p class="text-muted mb-4">
+            {% if search_query or selected_type %}
+            Try adjusting your search filters
+            {% else %}
+            Upload your first file to get started
+            {% endif %}
+        </p>
+        <a href="{% url 'upload' %}" class="btn btn-primary">
+            Upload File
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/preview.js' %}"></script>
+<script src="{% static 'js/share.js' %}"></script>
+{% endblock %}

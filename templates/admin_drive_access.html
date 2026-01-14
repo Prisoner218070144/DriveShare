@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Drive Explorer{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1>Drive Explorer</h1>
+            <p class="text-muted">Administrative access to entire drive</p>
+        </div>
+        <div>
+            <select id="drive-selector" class="form-control">
+                <option value="F:/">F: Drive</option>
+                <option value="C:/">C: Drive</option>
+                <option value="D:/">D: Drive</option>
+                <option value="E:/">E: Drive</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="file-explorer">
+        <div class="explorer-header">
+            <div class="flex items-center flex-grow">
+                <button id="btn-back" class="btn btn-outline mr-2" disabled>
+                    ← Back
+                </button>
+                <div class="path-navigation" id="current-path">F:/</div>
+            </div>
+            <button id="btn-refresh" class="btn btn-outline">
+                Refresh
+            </button>
+        </div>
+        
+        <div class="explorer-content" id="explorer-content">
+            <div class="text-center py-8">
+                <div class="loading"></div>
+                <p>Loading files...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-panel" id="preview-panel">
+        <div class="preview-header">
+            <h3>File Preview</h3>
+            <button class="close-preview btn btn-outline">&times;</button>
+        </div>
+        <div class="preview-content" id="preview-content"></div>
+    </div>
+</div>
+{% endblock %}
